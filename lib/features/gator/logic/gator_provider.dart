@@ -39,13 +39,18 @@ class GatorNotifier extends Notifier<GatorInput> {
   void updatePilotingSkill(int value) =>
       state = state.copyWith(pilotingSkill: value);
 
+  // G — update the target's piloting skill (1–6).
+  // Stored for future calculations; not yet used in any to-hit formula.
+  void updateTargetPilotingSkill(int value) =>
+      state = state.copyWith(targetPilotingSkill: value);
+
   // A — update the attacker's movement type for this turn.
   void updateAttackerMovement(AttackerMovement value) =>
       state = state.copyWith(attackerMovement: value);
 
-  // T — update the number of hexes the target moved this turn.
-  void updateTargetHexesMoved(int value) =>
-      state = state.copyWith(targetHexesMoved: value);
+  // T — update the target movement bracket selection.
+  void updateTargetMovementBracket(TargetMovementBracket value) =>
+      state = state.copyWith(targetMovementBracket: value);
 
   // T — update whether the target jumped or sprinted (additional modifier).
   void updateTargetMovementAdditional(TargetMovementAdditional value) =>
@@ -91,9 +96,17 @@ class GatorNotifier extends Notifier<GatorInput> {
   void updateOtherModifier(int value) =>
       state = state.copyWith(otherModifier: value);
 
-  // Resets all inputs back to their default values.
-  // Called by the Reset button in the UI.
+  // Resets all inputs back to null (fully blank slate).
+  // Called by the Full Reset button in the UI.
   void reset() => state = const GatorInput();
+
+  // Resets all modifiers and target data back to null, but keeps the
+  // attacker's gunnery and piloting skills so the player doesn't have
+  // to re-enter their own pilot's stats between calculations.
+  void resetModifiers() => state = GatorInput(
+        gunnerySkill: state.gunnerySkill,
+        pilotingSkill: state.pilotingSkill,
+      );
 }
 
 // The main provider for GATOR state.
@@ -104,17 +117,16 @@ final gatorProvider = NotifierProvider<GatorNotifier, GatorInput>(
   GatorNotifier.new,
 );
 
-// Derived provider that always reflects the current to-hit number.
-// It watches gatorProvider and automatically recomputes whenever any input changes.
-// The UI watches this to display the result — it never calls calculateToHit() directly.
-final toHitProvider = Provider<int>((ref) {
+// Derived provider that always reflects the current ranged to-hit number.
+// Returns null when gunnery skill has not been selected yet — the UI shows '?'.
+final toHitProvider = Provider<int?>((ref) {
   final input = ref.watch(gatorProvider);
   return calculateToHit(input);
 });
 
 // Derived provider that computes the melee to-hit number from current inputs.
-// Uses piloting skill as the base instead of gunnery skill.
-final meleeToHitProvider = Provider<int>((ref) {
+// Returns null when piloting skill has not been selected yet — the UI shows '?'.
+final meleeToHitProvider = Provider<int?>((ref) {
   final input = ref.watch(gatorProvider);
   return calculateMeleeToHit(input);
 });

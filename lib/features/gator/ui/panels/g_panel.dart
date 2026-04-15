@@ -66,6 +66,34 @@ class GPanel extends ConsumerWidget {
             onSelected: (value) =>
                 ref.read(gatorProvider.notifier).updatePilotingSkill(value),
           ),
+          const SizedBox(height: 24),
+          Text(
+            "Target Piloting Skill",
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "The target's piloting skill from their record sheet. "
+            'Stored for future calculations.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 16),
+          SelectorRow<int>(
+            selected: ref.watch(
+              gatorProvider.select((s) => s.targetPilotingSkill),
+            ),
+            options: [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+            ].map((n) => SelectorOption(label: '$n', value: n)).toList(),
+            onSelected: (value) => ref
+                .read(gatorProvider.notifier)
+                .updateTargetPilotingSkill(value),
+          ),
         ],
       ),
     );

@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:battletech_calc/features/gator/logic/gator_provider.dart';
 import 'package:battletech_calc/features/gator/ui/gator_header.dart';
 import 'package:battletech_calc/features/gator/ui/panels/g_panel.dart';
+import 'package:battletech_calc/features/gator/ui/panels/a_panel.dart';
+import 'package:battletech_calc/features/gator/ui/panels/t_panel.dart';
+import 'package:battletech_calc/features/gator/ui/panels/o_panel.dart';
+import 'package:battletech_calc/features/gator/ui/panels/r_panel.dart';
 
 // GatorScreen is the main screen for the GATOR to-hit calculator.
 // It uses ConsumerStatefulWidget instead of ConsumerWidget because it needs
@@ -48,15 +52,30 @@ class _GatorScreenState extends ConsumerState<GatorScreen> {
           // Shows the input panel for the currently selected GATOR section.
           Expanded(child: _buildPanel(_selected)),
 
-          // Reset button clears all inputs back to their defaults.
-          // ref.read is used here instead of ref.watch because we only need
-          // to call a method on the notifier — we don't need to rebuild when
-          // the provider value changes.
+          // Two reset buttons side by side.
+          // ref.read is used because we only need to call a method — no rebuild needed.
           Padding(
             padding: const EdgeInsets.all(16),
-            child: FilledButton.tonal(
-              onPressed: () => ref.read(gatorProvider.notifier).reset(),
-              child: const Text('Reset'),
+            child: Row(
+              children: [
+                // Clears modifiers and target data, but keeps the attacker's
+                // own gunnery and piloting skills so they don't need re-entering.
+                Expanded(
+                  child: FilledButton.tonal(
+                    onPressed: () =>
+                        ref.read(gatorProvider.notifier).resetModifiers(),
+                    child: const Text('Reset Modifiers'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Clears everything — full blank slate including skills.
+                Expanded(
+                  child: FilledButton.tonal(
+                    onPressed: () => ref.read(gatorProvider.notifier).reset(),
+                    child: const Text('Full Reset'),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -70,10 +89,13 @@ class _GatorScreenState extends ConsumerState<GatorScreen> {
       case GatorSection.g:
         return const GPanel();
       case GatorSection.a:
+        return const APanel();
       case GatorSection.t:
+        return const TPanel();
       case GatorSection.o:
+        return const OPanel();
       case GatorSection.r:
-        return const Center(child: Text('Coming soon'));
+        return const RPanel();
     }
   }
 }

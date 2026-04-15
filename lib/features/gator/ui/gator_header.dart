@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:battletech_calc/features/gator/logic/gator_provider.dart';
-import 'package:battletech_calc/features/gator/logic/gator_calculator.dart';
 
 // Enum representing which GATOR letter is currently selected.
 // Used by GatorScreen to determine which input panel to display.
@@ -35,25 +34,18 @@ class GatorHeader extends ConsumerWidget {
 
     // The modifier value displayed under each GATOR letter circle.
     // Index matches GatorSection.index (g=0, a=1, t=2, o=3, r=4).
+    // Null fields contribute 0 to modifier sums. G shows '?' until selected.
     final values = [
-      // G — gunnery skill (the base ranged value)
-      input.gunnerySkill,
-      // A — attacker movement modifier
-      input.attackerMovement.modifier,
-      // T — hex table modifier + jumped/sprinted additional modifier
-      targetMovementModifier(input.targetHexesMoved) +
-          input.targetMovementAdditional.modifier,
-      // O — sum of all other modifiers
-      input.woodsSmoke.modifier +
-          (input.targetPartialCover ? 1 : 0) +
-          input.targetProne.modifier +
-          (input.attackerProne ? 2 : 0) +
-          input.secondaryTarget.modifier +
-          input.armCritical.modifier +
-          input.heatModifier.modifier +
-          input.otherModifier,
+      // G — gunnery skill, 0 if not yet selected
+      '${input.gunnerySkill ?? 0}',
+      // A — attacker movement modifier (0 if not yet selected)
+      '${input.attackerMovement?.modifier ?? 0}',
+      // T — bracket modifier + jumped/sprinted additional modifier
+      '${(input.targetMovementBracket?.modifier ?? 0) + (input.targetMovementAdditional?.modifier ?? 0)}',
+      // O — sum of all other modifiers (null fields treated as 0)
+      '${(input.woodsSmoke?.modifier ?? 0) + (input.targetPartialCover == true ? 1 : 0) + (input.targetProne?.modifier ?? 0) + (input.attackerProne == true ? 2 : 0) + (input.secondaryTarget?.modifier ?? 0) + (input.armCritical?.modifier ?? 0) + (input.heatModifier?.modifier ?? 0) + input.otherModifier}',
       // R — range bracket + minimum range penalty
-      input.rangeBracket.modifier + input.minimumRange.modifier,
+      '${(input.rangeBracket?.modifier ?? 0) + (input.minimumRange?.modifier ?? 0)}',
     ];
 
     return Column(
@@ -75,7 +67,7 @@ class GatorHeader extends ConsumerWidget {
                     const SizedBox(height: 4),
                     // Small value circle — shows the current modifier for this section.
                     _Circle(
-                      label: '${values[index]}',
+                      label: values[index],
                       highlighted: false,
                       small: true,
                     ),
@@ -102,7 +94,11 @@ class GatorHeader extends ConsumerWidget {
               children: [
                 const Text('Ranged', style: TextStyle(fontSize: 12)),
                 const SizedBox(width: 8),
-                _Circle(label: '$rangedTotal', highlighted: true, small: true),
+                _Circle(
+                  label: rangedTotal != null ? '$rangedTotal' : '?',
+                  highlighted: true,
+                  small: true,
+                ),
               ],
             ),
 
@@ -119,7 +115,11 @@ class GatorHeader extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(width: 8),
-                _Circle(label: '$meleeTotal', highlighted: true, small: true),
+                _Circle(
+                  label: meleeTotal != null ? '$meleeTotal' : '?',
+                  highlighted: true,
+                  small: true,
+                ),
               ],
             ),
           ],
