@@ -64,6 +64,7 @@ class TPanel extends ConsumerWidget {
 
           SelectorRow<TargetMovementAdditional>(
             selected: additional,
+            columns: 3,
             options: const [
               SelectorOption(
                 label: 'None',

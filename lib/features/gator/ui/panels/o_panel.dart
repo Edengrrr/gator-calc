@@ -38,6 +38,7 @@ class OPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             SelectorRow<WoodsSmoke>(
               selected: input.woodsSmoke,
+              columns: 3,
               options: const [
                 SelectorOption(label: 'None', value: WoodsSmoke.none),
                 SelectorOption(label: 'Light', value: WoodsSmoke.light),
@@ -57,6 +58,7 @@ class OPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             SelectorRow<bool>(
               selected: input.targetPartialCover,
+              columns: 2,
               options: const [
                 SelectorOption(label: 'No', value: false),
                 SelectorOption(label: 'Yes', value: true),
@@ -76,6 +78,7 @@ class OPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             SelectorRow<TargetProne>(
               selected: input.targetProne,
+              columns: 3,
               options: const [
                 SelectorOption(label: 'No', value: TargetProne.no),
                 SelectorOption(label: 'Yes', value: TargetProne.yes),
@@ -95,6 +98,7 @@ class OPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             SelectorRow<bool>(
               selected: input.attackerProne,
+              columns: 2,
               options: const [
                 SelectorOption(label: 'No', value: false),
                 SelectorOption(label: 'Yes', value: true),
@@ -113,6 +117,7 @@ class OPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             SelectorRow<SecondaryTarget>(
               selected: input.secondaryTarget,
+              columns: 3,
               options: const [
                 SelectorOption(label: 'None', value: SecondaryTarget.none),
                 SelectorOption(label: 'In Arc', value: SecondaryTarget.inArc),
@@ -135,6 +140,7 @@ class OPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             SelectorRow<ArmCritical>(
               selected: input.armCritical,
+              columns: 3,
               options: const [
                 SelectorOption(label: 'None', value: ArmCritical.none),
                 SelectorOption(

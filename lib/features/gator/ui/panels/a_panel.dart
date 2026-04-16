@@ -31,6 +31,7 @@ class APanel extends ConsumerWidget {
           const SizedBox(height: 16),
           SelectorRow<AttackerMovement>(
             selected: current,
+            columns: 2,
             options: const [
               SelectorOption(
                 label: 'Stationary',

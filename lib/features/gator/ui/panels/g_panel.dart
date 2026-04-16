@@ -29,6 +29,7 @@ class GPanel extends ConsumerWidget {
           const SizedBox(height: 16),
           SelectorRow<int>(
             selected: current,
+            columns: 6,
             options: [
               1,
               2,
@@ -62,6 +63,7 @@ class GPanel extends ConsumerWidget {
           const SizedBox(height: 16),
           SelectorRow<int>(
             selected: ref.watch(gatorProvider.select((s) => s.pilotingSkill)),
+            columns: 6,
             options: [
               1,
               2,
@@ -96,6 +98,7 @@ class GPanel extends ConsumerWidget {
             selected: ref.watch(
               gatorProvider.select((s) => s.targetPilotingSkill),
             ),
+            columns: 6,
             options: [
               1,
               2,

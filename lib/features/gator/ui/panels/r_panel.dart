@@ -30,6 +30,7 @@ class RPanel extends ConsumerWidget {
           const SizedBox(height: 16),
           SelectorRow<RangeBracket>(
             selected: rangeBracket,
+            columns: 3,
             options: const [
               SelectorOption(label: 'Short', value: RangeBracket.short),
               SelectorOption(label: 'Medium', value: RangeBracket.medium),

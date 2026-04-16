@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:battletech_calc/features/dice_roller/data/roll_result.dart';
@@ -15,6 +17,13 @@ import 'package:battletech_calc/features/dice_roller/logic/dice_roller.dart';
 //   - FAB (+) opens a sheet for labeled multi-roll sets
 // ---------------------------------------------------------------------------
 
+// Non-secure RNG used only for the visual animation flicker — not for results.
+final _animRng = Random();
+int _randomFace() => _animRng.nextInt(6) + 1;
+
+// Delays between animation frames in ms — increases to create a slow-down effect.
+const _rollDelays = [40, 50, 65, 85, 115, 155];
+
 class DiceRollerScreen extends ConsumerStatefulWidget {
   const DiceRollerScreen({super.key});
 
@@ -28,21 +37,61 @@ class _DiceRollerScreenState extends ConsumerState<DiceRollerScreen> {
 
   // Current die values shown on screen. Null before the first roll in this mode.
   // Switching modes resets this so the cards show a fresh "tap to roll" state.
-  List<int>? _currentValues;
+  List<int>? _displayValues;
 
-  // Rolls the dice for the current mode, updates the display, and adds to history.
+  // True while the roll animation is running. Prevents double-tapping.
+  bool _isRolling = false;
+
+  Timer? _rollTimer;
+
+  @override
+  void dispose() {
+    _rollTimer?.cancel();
+    super.dispose();
+  }
+
   void _roll() {
+    if (_isRolling) return;
+
     final result = rollNd6(_mode);
-    setState(() => _currentValues = result.dice);
-    ref.read(diceProvider.notifier).addRoll(result);
+    _isRolling = true;
+
+    // Recursively schedule animation frames, each with an increasing delay.
+    // After all frames, show the real result and record the roll.
+    void tick(int frame) {
+      if (frame >= _rollDelays.length) {
+        if (!mounted) return;
+        setState(() {
+          _displayValues = result.dice;
+          _isRolling = false;
+        });
+        ref.read(diceProvider.notifier).addRoll(result);
+        return;
+      }
+
+      // Show a random face for this frame.
+      if (mounted) {
+        setState(() {
+          _displayValues = List.generate(_mode, (_) => _randomFace());
+        });
+      }
+
+      _rollTimer = Timer(
+        Duration(milliseconds: _rollDelays[frame]),
+        () => tick(frame + 1),
+      );
+    }
+
+    tick(0);
   }
 
   // When the mode changes, clear the current values so the new die cards
   // show "tap to roll" rather than a stale result from the previous mode.
   void _setMode(int mode) {
+    if (_isRolling) return;
     setState(() {
       _mode = mode;
-      _currentValues = null;
+      _displayValues = null;
     });
   }
 
@@ -73,13 +122,13 @@ class _DiceRollerScreenState extends ConsumerState<DiceRollerScreen> {
             GestureDetector(
               onTap: _roll,
               child: _mode == 1
-                  ? _DieCard(value: _currentValues?.first)
+                  ? _DieCard(value: _displayValues?.first)
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _DieCard(value: _currentValues?[0]),
+                        _DieCard(value: _displayValues?[0]),
                         const SizedBox(width: 20),
-                        _DieCard(value: _currentValues?[1]),
+                        _DieCard(value: _displayValues?[1]),
                       ],
                     ),
             ),
@@ -87,9 +136,9 @@ class _DiceRollerScreenState extends ConsumerState<DiceRollerScreen> {
             const SizedBox(height: 16),
 
             // Total for 2d6 — hidden in 1d6 mode and before the first roll.
-            if (_mode == 2 && _currentValues != null)
+            if (_mode == 2 && _displayValues != null)
               Text(
-                'Total: ${_currentValues!.fold(0, (s, v) => s + v)}',
+                'Total: ${_displayValues!.fold(0, (s, v) => s + v)}',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
 
@@ -129,7 +178,7 @@ class _DiceRollerScreenState extends ConsumerState<DiceRollerScreen> {
 
       // FAB opens the multi-roll sheet for labeled weapon rolls.
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showMultiRollSheet(context),
+        onPressed: _isRolling ? null : () => _showMultiRollSheet(context),
         tooltip: 'Multi roll',
         child: const Icon(Icons.add),
       ),
@@ -146,12 +195,11 @@ class _DiceRollerScreenState extends ConsumerState<DiceRollerScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Die card — a large tappable square displaying a single die value.
-// Shows "?" before the first roll. The card's background uses the primary
-// color once a value is present, matching the GATOR total circle style.
+// Die card — a large tappable square showing a drawn die face.
+// Shows "?" (unlit card) before the first roll.
+// Once a value is set, the primary-colored card draws pips via CustomPainter.
 // ---------------------------------------------------------------------------
 class _DieCard extends StatelessWidget {
-  // The value to display (1–6), or null if not yet rolled.
   final int? value;
 
   const _DieCard({this.value});
@@ -159,34 +207,100 @@ class _DieCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasValue = value != null;
+    final cs = Theme.of(context).colorScheme;
 
     return Container(
-      width: 100,
-      height: 100,
+      width: 110,
+      height: 110,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: hasValue
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.surfaceContainerHighest,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline,
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(18),
+        color: hasValue ? cs.primary : cs.surfaceContainerHighest,
+        border: Border.all(color: cs.outline, width: 2),
       ),
-      child: Center(
-        child: Text(
-          hasValue ? '$value' : '?',
-          style: TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.bold,
-            color: hasValue
-                ? Theme.of(context).colorScheme.onPrimary
-                : Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-      ),
+      child: hasValue
+          ? Padding(
+              // Inset so pips don't crowd the rounded corners.
+              padding: const EdgeInsets.all(14),
+              child: CustomPaint(
+                painter: _DieFacePainter(
+                  value: value!,
+                  pipColor: cs.onPrimary,
+                ),
+              ),
+            )
+          : Center(
+              child: Text(
+                '?',
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Die face painter — draws the correct pip layout for values 1–6.
+//
+// Pip grid (as fractions of the paint area after padding):
+//
+//   (0.18, 0.18)  ·  ·  (0.82, 0.18)      ← top row
+//   (0.18, 0.50)  ·  ·  (0.82, 0.50)      ← middle row
+//   (0.18, 0.82)  ·  ·  (0.82, 0.82)      ← bottom row
+//                    (0.50, 0.50)          ← center
+//
+// Standard d6 face layouts:
+//   1 →                            center
+//   2 → top-right,                 bottom-left
+//   3 → top-right,  center,        bottom-left
+//   4 → top corners,               bottom corners
+//   5 → top corners, center,       bottom corners
+//   6 → left column (top/mid/bot), right column (top/mid/bot)
+// ---------------------------------------------------------------------------
+class _DieFacePainter extends CustomPainter {
+  final int value;
+  final Color pipColor;
+
+  _DieFacePainter({required this.value, required this.pipColor});
+
+  // (dx, dy) fractions of the paint area for each face value.
+  static const _pips = <int, List<(double, double)>>{
+    1: [(0.50, 0.50)],
+    2: [(0.82, 0.18), (0.18, 0.82)],
+    3: [(0.82, 0.18), (0.50, 0.50), (0.18, 0.82)],
+    4: [(0.18, 0.18), (0.82, 0.18), (0.18, 0.82), (0.82, 0.82)],
+    5: [(0.18, 0.18), (0.82, 0.18), (0.50, 0.50), (0.18, 0.82), (0.82, 0.82)],
+    6: [
+      (0.18, 0.18), (0.82, 0.18),
+      (0.18, 0.50), (0.82, 0.50),
+      (0.18, 0.82), (0.82, 0.82),
+    ],
+  };
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = pipColor
+      ..style = PaintingStyle.fill;
+
+    // Pip radius scales with the available area so it looks right at any size.
+    final pipRadius = size.shortestSide * 0.13;
+
+    for (final (fx, fy) in _pips[value] ?? const <(double, double)>[]) {
+      canvas.drawCircle(
+        Offset(size.width * fx, size.height * fy),
+        pipRadius,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DieFacePainter old) =>
+      old.value != value || old.pipColor != pipColor;
 }
 
 // ---------------------------------------------------------------------------

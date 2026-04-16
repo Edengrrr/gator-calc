@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:battletech_calc/features/gator/ui/gator_screen.dart';
 import 'package:battletech_calc/features/dice_roller/ui/dice_roller_screen.dart';
+import 'package:battletech_calc/features/settings/ui/settings_screen.dart';
 
 // AppShell is the root layout of the app.
 // It owns the bottom navigation bar and swaps screens based on which tab is selected.
@@ -13,7 +14,7 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  // Tracks which tab is currently selected. 0 = GATOR, 1 = Dice.
+  // Tracks which tab is currently selected. 0 = GATOR, 1 = Dice, 2 = Settings.
   int _selectedIndex = 0;
 
   // The list of screens that map to each tab by index.
@@ -21,6 +22,7 @@ class _AppShellState extends State<AppShell> {
   final List<Widget> _screens = [
     const GatorScreen(),
     const DiceRollerScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -46,6 +48,10 @@ class _AppShellState extends State<AppShell> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'GATOR'),
           BottomNavigationBarItem(icon: Icon(Icons.casino), label: 'Dice'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
         ],
       ),
     );
