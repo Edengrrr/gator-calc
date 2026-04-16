@@ -26,7 +26,8 @@ enum GatorSection {
 // so the parent screen can swap the input panel below.
 class GatorHeader extends ConsumerWidget {
   // Which GATOR letter is currently active/highlighted.
-  final GatorSection selected;
+  // Null when the intro panel is showing — no circle is highlighted.
+  final GatorSection? selected;
 
   // Callback fired when the user taps a different letter.
   final ValueChanged<GatorSection> onSectionTap;

@@ -25,7 +25,7 @@ class APanel extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'How did your mech move this turn?',
+            'How did the attacking mech move this turn?',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),

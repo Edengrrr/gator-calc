@@ -26,8 +26,10 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Display the screen that matches the currently selected tab index.
-      body: _screens[_selectedIndex],
+      // IndexedStack keeps all screens mounted at all times, showing only the
+      // active one. This preserves each screen's local state (e.g. which GATOR
+      // section was last selected) when the user switches tabs and comes back.
+      body: IndexedStack(index: _selectedIndex, children: _screens),
 
       bottomNavigationBar: BottomNavigationBar(
         // Highlights the currently selected tab.
