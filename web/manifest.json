@@ -1,11 +1,11 @@
 {
-    "name": "BattleTech To-Hit Calculator",
-    "short_name": "BattleTech Calc",
+    "name": "GATOR To-Hit Calculator",
+    "short_name": "GATOR Calc",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1a1410",
     "theme_color": "#D4870A",
-    "description": "Fast GATOR to-hit calculator for BattleTech. Enter your modifiers and get your target number instantly.",
+    "description": "Fast GATOR to-hit calculator for tabletop mech combat. Enter your modifiers and get your target number instantly.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
