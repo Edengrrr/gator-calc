@@ -31,7 +31,7 @@ jobs:
       # base-href must match the repo name so asset paths resolve correctly
       # on GitHub Pages (served at /battletech_calc/, not /).
       - name: Build web
-        run: flutter build web --release --base-href /battletech_calc/
+        run: flutter build web --release --base-href /gator-calc/
 
       - uses: actions/upload-pages-artifact@v3
         with:
